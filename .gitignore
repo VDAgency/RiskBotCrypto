@@ -34,3 +34,5 @@ Thumbs.db
 *.coverage
 *.coveragerc
 *.hypothesis/
+
+amvera.yml
