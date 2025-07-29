@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.future import select
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
 from dotenv import load_dotenv
 
 
@@ -208,6 +208,59 @@ async def get_questions_by_user(db, user_id):
 async def get_answers_for_question(db, question_id):
     return await db.execute(select(Question).filter(Question.parent_question_id == question_id))
 
+
+# === Логика работы со статистикой бота ===
+
+# Функция получения общей статистики по боту
+async def get_bot_statistics(db):
+    result = await db.execute(
+        select(
+            func.count().label("total_users"),  # Общее количество пользователей
+            func.count().filter(
+                (User.policy_accepted == 1) & (User.offer_accepted == 1)
+            ).label("policy_accepted"),  # Сколько приняли политику и офферту
+            func.count().filter(
+                (User.score > 0) & (User.strategy_type.isnot(None))
+            ).label("test_passed"),  # Сколько прошли тест
+            func.count().filter(User.guide_downloaded == 1).label("guide_downloaded")  # Сколько скачали гайд
+        ).select_from(User)  # Запрос на таблицу пользователей
+    )
+
+    stats = result.fetchone()  # Получаем результат запроса
+    return {
+        "total_users": stats[0],  # Общее количество пользователей
+        "policy_accepted": stats[1],  # Сколько приняли политику и офферту
+        "test_passed": stats[2],  # Сколько прошли тест
+        "guide_downloaded": stats[3],  # Сколько скачали гайд
+    }
+
+
+# Функция получения данных о пользователе
+async def get_user_info_by_username(db, username: str):
+    # Запрос к базе данных для получения информации о пользователе
+    result = await db.execute(
+        select(
+            User.first_name,
+            User.last_name,
+            User.registration_date,
+            User.strategy_type,
+            User.score,
+            User.guide_downloaded
+        ).where(User.username == username)
+    )
+
+    user_info = result.fetchone()  # Получаем первый результат
+
+    if user_info:
+        return {
+            "first_name": user_info[0],
+            "last_name": user_info[1],
+            "registration_date": user_info[2],
+            "strategy_type": user_info[3],
+            "score": user_info[4],
+            "guide_downloaded": user_info[5]
+        }
+    return None  # Если пользователь не найден
 
 
 

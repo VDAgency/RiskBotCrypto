@@ -19,7 +19,6 @@ from aiogram.types import (
 from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters import CommandStart
 from aiogram.fsm.state import StatesGroup, State
 
 from config.bot_instance import bot
@@ -27,6 +26,7 @@ from dotenv import load_dotenv
 from database import create_tables, get_db, add_user, update_user_acceptance, update_strategy_type, update_user_guide_downloaded, update_last_interaction_date
 from config.setup_commands import set_bot_commands
 from help_handler import router as help_router
+from admin_panel import router as admin_router
 
 
 # Настройка логирования
@@ -85,6 +85,9 @@ async def start(message: Message, state: FSMContext):
     last_name = message.from_user.last_name
     username = message.from_user.username
     language_code = message.from_user.language_code
+    
+    # Устанавливаем команды бота асинхронно
+    await set_bot_commands(bot, user_id)
     
     user_acceptance[user_id] = {"policy": False, "offer": False}
     logger.info(f"Команда /start получена от пользователя с telegram_id: {user_id}. Состояние инициализировано.")
@@ -416,11 +419,10 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
     dp.include_router(help_router)
-    
-    # Устанавливаем команды бота асинхронно
-    await set_bot_commands(bot)
+    dp.include_router(admin_router)
     
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+    
