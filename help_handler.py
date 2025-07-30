@@ -34,6 +34,7 @@ router = Router()
 
 # Определяем состояния для FSM
 class AdminResponse(StatesGroup):
+    waiting_for_question = State()
     waiting_for_response = State()
 
 # ID администратора
@@ -69,7 +70,7 @@ async def help_message(message: Message):
 async def ask_question(callback_query: CallbackQuery, state: FSMContext):
     user_id = callback_query.from_user.id
     # Сохраняем состояние, что пользователь хочет задать вопрос
-    await state.set_state(AdminResponse.waiting_for_response)  # Устанавливаем состояние для ожидания вопроса
+    await state.set_state(AdminResponse.waiting_for_question)  # Устанавливаем состояние для ожидания вопроса
     await callback_query.message.answer(
         "Введите ваш вопрос и нажмите отправить.",
         reply_markup=ReplyKeyboardMarkup(
@@ -83,7 +84,7 @@ async def ask_question(callback_query: CallbackQuery, state: FSMContext):
 
 
 # === Обработка вопроса пользователя ===
-@router.message(AdminResponse.waiting_for_response, F.text != "Отмена")
+@router.message(AdminResponse.waiting_for_question, F.text != "Отмена")
 async def handle_question(message: Message, state: FSMContext):
     user_id = message.from_user.id
     question_text = message.text

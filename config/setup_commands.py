@@ -14,5 +14,6 @@ async def set_bot_commands(bot, user_id):
     if user_id in ADMIN_IDS:
         # Если это администратор, добавляем дополнительные команды
         commands.append(BotCommand(command="admin", description="Админ-панель"))
+        commands.append(BotCommand(command="questions", description="Вопросы пользователей"))
     
     await bot.set_my_commands(commands)
