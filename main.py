@@ -12,6 +12,7 @@ from aiogram.filters import Command
 from aiogram.types import (
     Message,
     ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
     KeyboardButton,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
@@ -366,8 +367,8 @@ async def show_result(message: Message, score: int):
         strategy_type = "Агрессивная"
 
     # Отправляем результат пользователю
-    await message.answer(f"✅ *Тест завершён!* Вот твой результат:\n\n{result}", parse_mode="Markdown")
-
+    await message.answer(f"✅ *Тест завершён!* Вот твой результат:\n\n{result}", reply_markup=ReplyKeyboardRemove(), parse_mode="Markdown")
+    
     # Подключаем базу данных и обновляем тип стратегии
     async for db in get_db():
         await update_strategy_type(db, user_id, score, strategy_type)

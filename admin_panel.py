@@ -169,7 +169,9 @@ async def process_username_input(message: Message, state: FSMContext):
         await message.answer("🚫 У вас нет прав для доступа.")
         return
 
-    username = message.text  # Получаем юзернейм от администратора
+    username = message.text.strip()
+    if username.startswith('@'):
+        username = username[1:]
 
     # Подключаем базу данных и получаем информацию о пользователе
     async for db in get_db():

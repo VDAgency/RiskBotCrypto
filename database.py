@@ -246,7 +246,7 @@ async def get_user_info_by_username(db, username: str):
             User.strategy_type,
             User.score,
             User.guide_downloaded
-        ).where(User.username == username)
+        ).where(func.lower(User.username) == func.lower(username))
     )
 
     user_info = result.fetchone()  # Получаем первый результат
